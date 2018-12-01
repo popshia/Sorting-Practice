@@ -28,13 +28,14 @@ typedef struct DataStruct {
 static ifstream input ;
 static ofstream output ;
 static string FileN = "0" ;
+static int Count = 0 ;
 
 class DestroyDickDecember {
     vector<DataStruct> dataBase ;
     vector<DataStruct> sorted ;
     
 public:
-    void inputData() {
+    void inputData() { // tool
         dataBase.clear() ;
         sorted.clear() ;
         DataStruct tempData ;
@@ -72,10 +73,11 @@ public:
             } // erase '"' & ','
             tempData.graduated = atoi( cut[8].c_str() ) ;
             dataBase.push_back( tempData ) ;
+            Count++ ;
         } // get the whole file
     } // input the data
     
-    int FindLargest() {
+    int FindLargest() { // tool
         int largestIndex = 0 ;
         for ( int i = 0 ; i < dataBase.size() ; i++ ) {
             if ( dataBase[i].graduated > dataBase[largestIndex].graduated ) largestIndex = i ;
@@ -83,7 +85,7 @@ public:
         return largestIndex ;
     } // find the largest
     
-    int FindSmallest() {
+    int FindSmallest() { // tool
         int smallestIndex = 0 ;
         for ( int i = 0 ; i < dataBase.size() ; i++ ) {
             if ( dataBase[i].graduated < dataBase[smallestIndex].graduated ) smallestIndex = i ;
@@ -91,7 +93,7 @@ public:
         return smallestIndex ;
     } // find the smallest
     
-    void SelectionSort() {
+    void SelectionSort() { // done
         while ( ! dataBase.empty() ) {
             int largestIndex = FindLargest() ;
             // cout << dataBase[largestIndex].graduated << endl ;
@@ -100,7 +102,7 @@ public:
         } // add to new vector and erase
     } // function 1: Selection Sort (done)
     
-    void BubbleSort() {
+    void BubbleSort() { // done
         for ( int one = 0 ; one < dataBase.size() ; one++ ) {
             // cout << "one: " << dataBase[one].graduated << endl ;
             for ( int two = one ; two < dataBase.size() ; two ++ ) {
@@ -110,31 +112,108 @@ public:
         } // for
         for ( int i = 0 ; i < dataBase.size() ; i++ ) output << dataBase[i].wholeSentence << endl ;
     } // function 1: Bubble Sort (done)
-
-    int InsertedIdx( int* arr, int eleIdx, int(*compar)(int, int) ) {
-        int i ;
-        for ( i = 0 ; i < eleIdx ; i++ ) if( compar( arr[i], arr[eleIdx] ) > 0 ) {
-            break ;
-        }
+    
+    void Merge( int front, int mid, int end ) { // done
+        vector<DataStruct> left( dataBase.begin()+front, dataBase.begin()+mid+1 ) ;
+        vector<DataStruct> right( dataBase.begin()+mid+1, dataBase.begin()+end+1 ) ;
+        DataStruct max ;
+        max.graduated = 99999 ;
+        
+        left.push_back( max ) ;
+        right.push_back( max ) ;
+        
+        int leftIndex = 0 ;
+        int rightIndex = 0 ;
+        
+        for ( int i = front ; i <= end ; i++ ) {
+            // cout << left[leftIndex].graduated << " " << right[rightIndex].graduated << endl ;
+            if ( left[leftIndex].graduated <= right[rightIndex].graduated ) {
+                dataBase[i] = left[leftIndex] ;
+                leftIndex++ ;
+            } // left
+            else {
+                dataBase[i] = right[rightIndex] ;
+                rightIndex++ ;
+            } // right
+        } // compare two sub vectors
+    } // merge left and right sub vectors
+    
+    void MergeSort( int front, int end ) { // done
+        if ( front < end ) {
+            int mid = ( front + end ) / 2 ;
+            MergeSort( front, mid ) ;
+            MergeSort( mid+1, end ) ;
+            Merge( front, mid, end ) ;
+        } // run recursive
+        
+        sorted = dataBase ;
+        reverse( sorted.begin(), sorted.end() ) ;
+    } // function 2: Merge Sort
+    
+    int Partition( int front, int end ) { // done
+        int pivot = dataBase[end].graduated ;
+        int i = front - 1 ;
+        
+        for ( int j = front ; j < end ; j++ ) {
+            if ( dataBase[j].graduated < pivot ) {
+                i++ ;
+                swap( dataBase[i], dataBase[j] ) ;
+            } // if smaller, swap
+        } // run the whole data
+        
+        i++ ;
+        swap( dataBase[i], dataBase[end] ) ;
         return i ;
-    }
+    } // Partition
     
-    void Insert(int* arr, int eleIdx, int inserted) {
-        int ele = arr[eleIdx] ;
-        int i ;
-        for ( i = eleIdx ; i > inserted ; i-- ) arr[i] = arr[i - 1] ;
-        arr[inserted] = ele ;
-    }
+    void QuickSort( int front, int end ) { // done
+        if ( front < end ) {
+            int pivot = Partition( front, end ) ;
+            QuickSort( front, pivot-1 ) ;
+            QuickSort( pivot+1, end ) ;
+        } // run recursive
+        
+        /*cout << "Sorted: " ;
+         for ( int i = 0 ; i < dataBase.size() ; i++ ) cout << dataBase[i].graduated << " " ;
+         cout << endl ;*/
+        sorted = dataBase ;
+        reverse( sorted.begin(), sorted.end() ) ;
+    } // function 2: Quick Sort
     
-    void InsertionSort( int* arr, int len, int(*compar)(int, int) ) {
-        int i ;
-        for ( i = 0 ; i < len ; i++ ) {
-            int inserted = InsertedIdx(arr, i, compar) ;
-            if ( inserted != i ) Insert(arr, i, inserted);
-        }
-    }
+    void RadixSort() { // done
+        DataStruct temp[Count][Count] ;
+        int order[Count] ;
+        for ( int i = 0 ; i < Count ; i ++ ) order[i] = 0 ;
+        int n = 1 ;
+        
+        while ( n <= dataBase[FindLargest()].graduated ) {
+            int i ;
+            for ( i = 0 ; i < Count ; i++ ) {
+                int lsd = ( ( dataBase[i].graduated / n ) % 10 ) ;
+                temp[lsd][order[lsd]] = dataBase[i] ;
+                order[lsd]++ ;
+            } // first category
+            
+            int k = 0 ;
+            for ( i = 0 ; i < Count ; i++ ) {
+                if ( order[i] != 0 ) {
+                    int j ;
+                    for ( j = 0 ; j < order[i] ; j++, k++ ) dataBase[k] = temp[i][j] ;
+                } // get the one out
+                order[i] = 0 ;
+            } // reorder
+            
+            n *= 10 ;
+        } // run the whole data
+        
+        sorted = dataBase ;
+        reverse( sorted.begin(), sorted.end() ) ;
+        /*cout << "Sorted: " ;
+         for ( int i = 0 ; i < dataBase.size() ; i++ ) cout << dataBase[i].graduated << " " ;
+         cout << endl ;*/
+    } // function 3: Radix Sort
     
-    void Print() { for( int i = 0 ; i < sorted.size() ; i++ ) output << sorted[i].wholeSentence << endl ; }
+    void Print() { for( int i = 0 ; i < sorted.size() ; i++ ) output << sorted[i].wholeSentence << endl ; } // Print out sorted data
 } ; // DestroyDickDecember
 
 int main() {
@@ -161,12 +240,12 @@ int main() {
             return 0 ;
         } // quit
         
-        else if ( command > 3 || command < 0 ) {
+        else if ( command > 3 || command < 0 ) { // wrong command
             cout << "Error command! please enter an acceptable command :" << endl << endl ;
             continueOrNot = true ;
         } // wrong command
         
-        else if ( command == 1 ) {
+        else if ( command == 1 ) { // function 1
             bool function1Confirm = false ;
             
             do {
@@ -200,8 +279,8 @@ int main() {
                         function1.inputData() ;
                         time = clock() ;
                         outputName = "bubble_sort" + FileN + ".txt" ;
-                        function1.BubbleSort() ;
                         output.open( outputName.c_str() ) ;
+                        function1.BubbleSort() ;
                         input.close() ;
                         output.close() ;
                         time = clock() - time ;
@@ -217,78 +296,96 @@ int main() {
             FileN = "0" ;
         } // mission 1: Select & Bubble Sort
         
-        /*else if ( command == 2 ) {
-            bool function1Confirm = false ;
+        else if ( command == 2 ) { // function 2
+            bool function2Confirm = false ;
             
             do {
                 cout << "Please enter the file you want to read and copy or [0] to quit:" << endl ;
                 cin >> FileN ;
                 
-                if ( FileN == 0 ) {
-                    function1Confirm = true ;
+                if ( FileN == "0" ) {
+                    function2Confirm = true ;
                     continueOrNot = true ;
                 } // quit
                 
                 else {
+                    string fileName = "input" + FileN + ".txt" ;
+                    input.open( fileName.c_str() ) ;
                     // cut the input FileN, try to open
-                    if ( input.open() ) {
+                    if ( input.is_open() ) {
+                        function2.inputData() ;
                         clock_t time ;
+                        // merge sort
                         time = clock() ;
-                        function1.SelectionSort(<#int *arr#>, <#int len#>, <#int (*compar)(int, int)#>) ;
+                        string outputName = "merge_sort" + FileN + ".txt" ;
+                        output.open( outputName.c_str() ) ;
+                        function2.MergeSort( 0, Count-1 ) ; // sort
+                        function2.Print() ;
+                        input.close() ;
+                        output.close() ;
                         time = clock() - time ;
-                        cout << "Selection Sort cost time = " << time * 1000 / CLOCKS_PER_SEC << " ms" << endl ; // print out the time
+                        cout << "Merge Sort cost time = " << time * 1000 / CLOCKS_PER_SEC << " ms" << endl ; // print out the time
+                        // quick sort
+                        Count = 0 ;
+                        input.open( fileName.c_str() ) ;
+                        function2.inputData() ;
                         time = clock() ;
-                        function1.BubbleSort(<#int *arr#>, <#int len#>, <#int (*compar)(int, int)#>) ;
+                        outputName = "quick_sort" + FileN + ".txt" ;
+                        output.open( outputName.c_str() ) ;
+                        function2.QuickSort( 0, Count-1 ) ; // sort
+                        function2.Print() ;
+                        input.close() ;
+                        output.close() ;
                         time = clock() - time ;
-                        function1Confirm = true ;
+                        cout << "Quick Sort cost time = " << time * 1000 / CLOCKS_PER_SEC << " ms" << endl ; // print out the time
+                        // set parameters
+                        function2Confirm = true ;
                         continueOrNot = true ;
-                        cout << "Bubble Sort cost time = " << time * 1000 / CLOCKS_PER_SEC << " ms" << endl ; // print out the time
-                    } // open successfully
-                    else cout << "*****  input" << FileN << ".txt does not exist!  *****" << endl ; // no file
+                    } // successfully opened
+                    else cout << "*****  " << fileName << " does not exist!  *****" << endl ; // no file
                 } // open and sort
-            } while( ! function1Confirm ) ;
+            } while( ! function2Confirm ) ;
             
-            Count = 0 ;
-            FileN = 0 ;
-            input.close() ;
-            output.close() ;
-        } // mission 1: Select & Bubble Sort
+            FileN = "0" ;
+        } // mission 2: Merge & Quick Sort
         
-        else if ( command == 3 ) {
-            bool function1Confirm = false ;
+        else if ( command == 3 ) { // function 3
+            bool function3Confirm = false ;
             
             do {
                 cout << "Please enter the file you want to read and copy or [0] to quit:" << endl ;
                 cin >> FileN ;
                 
-                if ( FileN == 0 ) {
-                    function1Confirm = true ;
+                if ( FileN == "0" ) {
+                    function3Confirm = true ;
                     continueOrNot = true ;
                 } // quit
                 
                 else {
-                    // cut the input FileN, try to open
-                    if ( input.open() ) {
+                    string fileName = "input" + FileN + ".txt" ;
+                    input.open( fileName.c_str() ) ;
+                    if ( input.is_open() ) {
+                        function3.inputData() ;
                         clock_t time ;
                         time = clock() ;
-                        function1.SelectionSort(<#int *arr#>, <#int len#>, <#int (*compar)(int, int)#>) ;
+                        string outputName = "radix_sort" + FileN + ".txt" ;
+                        output.open( outputName.c_str() ) ;
+                        function3.RadixSort() ;
+                        function3.Print() ;
                         time = clock() - time ;
-                        cout << "Selection Sort cost time = " << time * 1000 / CLOCKS_PER_SEC << " ms" << endl ; // print out the time
-                        time = clock() ;
-                        function1.BubbleSort(<#int *arr#>, <#int len#>, <#int (*compar)(int, int)#>) ;
-                        time = clock() - time ;
-                        function1Confirm = true ;
+                        cout << "Radix Sort cost time = " << time * 1000 / CLOCKS_PER_SEC << " ms" << endl ; // print out the time
+                        function3Confirm = true ;
                         continueOrNot = true ;
-                        cout << "Bubble Sort cost time = " << time * 1000 / CLOCKS_PER_SEC << " ms" << endl ; // print out the time
                     } // open successfully
                     else cout << "*****  input" << FileN << ".txt does not exist!  *****" << endl ; // no file
                 } // open and sort
-            } while( ! function1Confirm ) ;
+            } while( ! function3Confirm ) ;
             
             Count = 0 ;
-            FileN = 0 ;
+            FileN = "0" ;
             input.close() ;
             output.close() ;
-        } // mission 1: Select & Bubble Sort*/
+        } // mission 3: Radix Sort
     } while( continueOrNot ) ;
 } // main function
+
