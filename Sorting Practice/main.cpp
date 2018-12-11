@@ -112,6 +112,8 @@ public:
         } // for
         for ( int i = 0 ; i < dataBase.size() ; i++ ) output << dataBase[i].wholeSentence << endl ;
     } // function 1: Bubble Sort (done)
+    
+    
 
     void Merge( int front, int mid, int end ) { // done
         vector<DataStruct> left( dataBase.begin()+front, dataBase.begin()+mid+1 ) ;
@@ -224,6 +226,9 @@ int main() {
     DestroyDickDecember function1 ;
     DestroyDickDecember function2 ;
     DestroyDickDecember function3 ;
+    DestroyDickDecember function4 ;
+    output.open( "sort_time.txt" ) ;
+    output << "File Name\t" << "Selection Sort\t" << "Bubble Sort\t" << "Merge Sort\t" << "Quick Sort\t" << "Merge Sort" << endl ;
 
     do {
         cout << "*****************************************" << endl ; // welcome message
@@ -232,6 +237,7 @@ int main() {
         cout << "***** 1 : Select & Bubble Sort      *****" << endl ;
         cout << "***** 2 : Merge & Quick Sort        *****" << endl ;
         cout << "***** 3 : Radix Sort                *****" << endl ;
+        cout << "***** 4 : All Sorting Preview       *****" << endl ;
         cout << "*****************************************" << endl ;
         cout << endl << "Please enter your choice :" << endl ;
 
@@ -242,7 +248,7 @@ int main() {
             return 0 ;
         } // quit
 
-        else if ( command > 3 || command < 0 ) { // wrong command
+        else if ( command > 4 || command < 0 ) { // wrong command
             cout << "Error command! please enter an acceptable command :" << endl << endl ;
             continueOrNot = true ;
         } // wrong command
@@ -388,6 +394,72 @@ int main() {
             input.close() ;
             output.close() ;
         } // mission 3: Radix Sort
+        
+        else if ( command == 4 ) {
+            bool function4Confirm = false ;
+            
+            do {
+                cout << "Please enter the file you want to read and copy or [0] to quit:" << endl ;
+                cin >> FileN ;
+                
+                if ( FileN == "0" ) {
+                    function4Confirm = true ;
+                    continueOrNot = true ;
+                } // quit
+                
+                else {
+                    string fileName = "input" + FileN + ".txt" ;
+                    input.open( fileName.c_str() ) ;
+                    if ( input.is_open() ) {
+                        output.open( "sort_time.txt", ios::app ) ;
+                        output << fileName << "\t" ;
+                        
+                        function4.inputData() ;
+                        clock_t time ;
+                        time = clock() ;
+                        function4.SelectionSort() ;
+                        time = clock() - time ;
+                        output << time * 1000 / CLOCKS_PER_SEC << " ms" << "\t\t" ; // print out the time
+                        
+                        input.open( fileName.c_str() ) ;
+                        function4.inputData() ;
+                        time = clock() ;
+                        function4.BubbleSort();
+                        time = clock() - time ;
+                        output << time * 1000 / CLOCKS_PER_SEC << " ms" << "\t\t" ; // print out the time
+                        
+                        input.open( fileName.c_str() ) ;
+                        function4.inputData() ;
+                        time = clock() ;
+                        function4.MergeSort( 0, Count-1 ) ;
+                        time = clock() - time ;
+                        output << time * 1000 / CLOCKS_PER_SEC << " ms" << "\t\t" ; // print out the time*/
+                        
+                        input.open( fileName.c_str() ) ;
+                        function4.inputData() ;
+                        time = clock() ;
+                        function4.QuickSort( 0, Count-1 ) ;
+                        time = clock() - time ;
+                        output << time * 1000 / CLOCKS_PER_SEC << " ms" << "\t\t" ; // print out the time
+                        
+                        input.open( fileName.c_str() ) ;
+                        function4.inputData() ;
+                        time = clock() ;
+                        function4.RadixSort() ;
+                        time = clock() - time ;
+                        output << time * 1000 / CLOCKS_PER_SEC << " ms" << endl ; // print out the time
+                        
+                        function4Confirm = true ;
+                        continueOrNot = true ;
+                    } // open successfully
+                    else cout << "*****  input" << FileN << ".txt does not exist!  *****" << endl ; // no file
+                } // open and sort
+            } while( ! function4Confirm ) ;
+            
+            Count = 0 ;
+            FileN = "0" ;
+            input.close() ;
+            output.close() ;
+        }
     } while( continueOrNot ) ;
 } // main function
-
